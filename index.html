@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Rocoto · Dashboard de Rentabilidad</title>
+<title>Arrebatao · Dashboard de Rentabilidad</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -366,40 +366,40 @@ function parseExcel(wb){
   const toRows=name=>{const ws=wb.Sheets[name];return ws?XLSX.utils.sheet_to_json(ws,{defval:""}):[];};
 
   RAW.ventas=toRows("VENTAS").map(r=>({
-    sede:col(r,["Establecimiento","Sede"]).replace("ROCOTTO","ROCOTO").replace("ROCOTO ",""),
+    sede:col(r,["Establecimiento","Sede"]).trim().replace("MALANGA DEL TROPICO","MALANGA").replace("MALANGA DEL TRÓPICO","MALANGA"),
     fam:col(r,["Familia"]),art:col(r,["Art"]),
     mes:col(r,["Mes"]),
     uds:colN(r,["Uds","Unid"]),
     base:colN(r,["Base"]),
     neto:colN(r,["Neto"]),
-    cc:col(r,["Centro"]),
+    cc:col(r,["CC","Centro"]),
   })).filter(r=>r.neto>0&&r.base>0);
 
   RAW.compras=toRows("COMPRAS").map(r=>({
-    sede:col(r,["Almac","Alm"]).replace("ROCOTO ","").toUpperCase().trim(),
+    sede:col(r,["Almac","Alm"]).toUpperCase().trim(),
     prov:col(r,["Proveedor"]),
     fam:col(r,["Familia"]),
     art:col(r,["Art"]),
     mes:col(r,["Mes"]).toLowerCase().trim(),
     total:colN(r,["Total Neto","Total"]),
     cc:col(r,["CC"]),
-    esPlanta:col(r,["Almac","Alm"]).toUpperCase().includes("PLANTA"),
+    esPlanta:false,
   })).filter(r=>r.total>0);
 
   RAW.mv=toRows("MERCANCIA VENDIDA").map(r=>({
-    sede:col(r,["Sede"]).toUpperCase().trim(),cc:col(r,["Centro"]),
-    mes:col(r,["Mes"]).substring(0,3).toLowerCase(),
+    sede:col(r,["Sede"]).toUpperCase().trim(),cc:col(r,["Centro","Centro de costos"]),
+    mes:col(r,["MES","Mes"]).substring(0,3).toLowerCase(),
     inv_ini:colN(r,["Inv Inicial","Inv_Inicial"]),
     compras:colN(r,["Compras"]),
-    traslados:colN(r,["Traslados"]),
+    traslados:colN(r,["Traslados"])||0,
     inv_fin:colN(r,["Inv Final","Inv_Final"]),
     mv:colN(r,["Mercancia","Mercancía"]),
     ventas:colN(r,["Ventas"]),
     prom:colN(r,["Promedio"]),
-  })).filter(r=>r.sede&&r.sede!=="Total"&&r.ventas>0);
+  })).filter(r=>r.sede&&r.sede!=="TOTAL"&&r.ventas>0);
 
   RAW.inv=toRows("FORMATO INVENTARIOS").map(r=>({
-    sede:col(r,["Almacen"]).replace("ROCOTO ","").toUpperCase().trim(),
+    sede:col(r,["Almacen"]).toUpperCase().trim(),
     cc:col(r,["Centro"]),
     mes:col(r,["Mes"]).substring(0,3).toLowerCase(),
     art:col(r,["Art"]),
@@ -465,7 +465,7 @@ function renderAll(){
     {icon:"💵",label:"Ventas Totales",value:fmt(tven),sub:"Hoja Mercancía Vendida",bar:"linear-gradient(90deg,#00b4d8,#48cae4)"},
     {icon:"📂",label:"Inventario Inicial",value:fmt(MV.reduce((a,b)=>a+b.inv_ini,0)),sub:"Valor stock inicio período",bar:"linear-gradient(90deg,#0096c7,#0077b6)"},
     {icon:"🛒",label:"Compras Totales",value:fmt(tc),sub:"Insumos y materias primas",bar:"linear-gradient(90deg,#00b4d8,#48cae4)"},
-    {icon:"🔄",label:"Traslados",value:fmt(MV.reduce((a,b)=>a+b.traslados,0)),sub:"Envíos desde planta",bar:"linear-gradient(90deg,#7209b7,#3a86ff)"},
+    {icon:"🔄",label:"Traslados",value:MV.reduce((a,b)=>a+b.traslados,0)>0?fmt(MV.reduce((a,b)=>a+b.traslados,0)):"N/A",sub:"Envíos entre sedes",bar:"linear-gradient(90deg,#7209b7,#3a86ff)"},
     {icon:"📋",label:"Inventario Final",value:fmt(MV.reduce((a,b)=>a+b.inv_fin,0)),sub:"Valor stock al cierre",bar:"linear-gradient(90deg,#1b9aaa,#48cae4)"},
     {icon:"📦",label:"Mercancía Vendida",value:fmt(tmv),sub:"Costo directo de ventas",bar:"linear-gradient(90deg,#3a86ff,#7209b7)"},
     {icon:"📊",label:"Costo Global",value:`${fcGlobal}%`,sub:fcGlobal<36?"✓ En rango":"⚠ Revisar",bar:"linear-gradient(90deg,#06d6a0,#90e0ef)"},
@@ -1109,13 +1109,13 @@ function handleFile(file){
 (async()=>{
   // If running on a real server (Vercel/web), fetch from same folder
   if(location.protocol !== "file:"){
-    for(const p of["./Base_de_Informes_Rocoto.xlsx","Base_de_Informes_Rocoto.xlsx","/Base_de_Informes_Rocoto.xlsx"]){
+    for(const p of["./Base_de_Informes_Arrebatao.xlsx","Base_de_Informes_Arrebatao.xlsx","/Base_de_Informes_Arrebatao.xlsx"]){
       try{
         const res=await fetch(p,{cache:"no-cache"});
         if(!res.ok)continue;
         const buf=await res.arrayBuffer();
         if(buf.byteLength<1000)continue;
-        loadBuffer(buf,"Base_de_Informes_Rocoto.xlsx");
+        loadBuffer(buf,"Base_de_Informes_Arrebatao.xlsx");
         return;
       }catch(e){}
     }
@@ -1131,7 +1131,7 @@ function showFilePicker(){
       <div style="font-size:1.4rem;font-weight:700;color:#e9ecef">Rocoto Dashboard</div>
       <div style="font-size:.85rem;color:#6c8ebf;max-width:380px">Selecciona el archivo Excel para cargar el dashboard</div>
       <label style="background:linear-gradient(135deg,#0096c7,#023e8a);color:#fff;font-weight:700;padding:12px 28px;border-radius:10px;font-size:.9rem;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:8px">
-        📂 Seleccionar Base_de_Informes_Rocoto.xlsx
+        📂 Seleccionar Base_de_Informes_Arrebatao.xlsx
         <input type="file" accept=".xlsx,.xls" id="file-input-fallback" style="display:none"/>
       </label>
       <div style="font-size:.72rem;color:#344e6e;background:rgba(0,180,216,.06);border:1px solid rgba(0,180,216,.12);border-radius:8px;padding:10px 16px;max-width:420px">
