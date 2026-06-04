@@ -1191,23 +1191,43 @@ function handleFile(file){
 
 // File upload removed — Excel loaded directly from repo
 
-// Auto-load from repo or fallback to local file picker
-(async()=>{
-  // If running on a real server (Vercel/web), fetch from same folder
-  if(location.protocol !== "file:"){
-    for(const p of["./Base_de_Informes_Arrebatao.xlsx","Base_de_Informes_Arrebatao.xlsx","/Base_de_Informes_Arrebatao.xlsx"]){
-      try{
-        const res=await fetch(p,{cache:"no-cache"});
-        if(!res.ok)continue;
-        const buf=await res.arrayBuffer();
-        if(buf.byteLength<1000)continue;
-        loadBuffer(buf,"Base_de_Informes_Arrebatao.xlsx");
-        return;
-      }catch(e){}
-    }
+// ── AUTO-CARGA DESDE GOOGLE SHEETS VIA APPS SCRIPT ─────────
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxAkrG3XrqEUm1dhF13z9rg8TucUz1oHxtN0k0evjyNQxe6gi2A8MOzz2fANkcZMlgh/exec";
+
+(async () => {
+  try {
+    document.querySelector('#loading div:last-child').textContent = 'Conectando con Google Sheets…';
+    const res = await fetch(APPS_SCRIPT_URL, {redirect: 'follow'});
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Error en API');
+    
+    // Convertir JSON al formato que XLSX espera
+    const wb = { SheetNames: Object.keys(json.data), Sheets: {} };
+    Object.entries(json.data).forEach(([nombre, filas]) => {
+      wb.Sheets[nombre] = XLSX.utils.json_to_sheet(filas);
+    });
+    
+    parseExcel(wb);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('main-nav').style.display = 'flex';
+    document.getElementById('filter-bar').style.display = 'flex';
+    document.getElementById('loading-badge').style.display = 'none';
+    document.getElementById('status-badge').style.display = 'flex';
+    document.getElementById('update-time').textContent = new Date().toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'});
+  } catch(e) {
+    console.error('Apps Script API error:', e);
+    // Fallback: intentar cargar Excel desde el repo
+    try {
+      const res2 = await fetch('./Base_de_Informes_Arrebatao.xlsx', {cache: 'no-cache'});
+      if (res2.ok) {
+        const buf = await res2.arrayBuffer();
+        if (buf.byteLength > 1000) { loadBuffer(buf, 'Base_de_Informes_Arrebatao.xlsx'); return; }
+      }
+    } catch(e2) {}
+    showFilePicker();
   }
-  // Local file:// or fetch failed — show file picker
-  showFilePicker();
 })();
 
 function showFilePicker(){
