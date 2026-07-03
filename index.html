@@ -1202,7 +1202,17 @@ const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWxROCvVRrylHh
     if (loadingMsg) loadingMsg.textContent = 'Conectando con Google Sheets…';
     const res = await fetch(APPS_SCRIPT_URL);
     if (res.ok) {
-      const json = await res.json();
+      let json = await res.json();
+      if (json.gz && json.data) {
+        // La respuesta viene comprimida con gzip (base64) para reducir el tamano transferido
+        const binStr = atob(json.data);
+        const bytes = new Uint8Array(binStr.length);
+        for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+        const ds = new DecompressionStream('gzip');
+        const stream = new Blob([bytes]).stream().pipeThrough(ds);
+        const text = await new Response(stream).text();
+        json = JSON.parse(text);
+      }
       if (json.ok && json.data) {
         const wb = { SheetNames: Object.keys(json.data), Sheets: {} };
         Object.entries(json.data).forEach(([nombre, filas]) => {
