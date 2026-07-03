@@ -600,7 +600,7 @@ function renderAll(){
     const tVentas=rows.reduce((a,b)=>a+b.ventas,0);
     return tVentas>0?+(tCosto/tVentas*100).toFixed(2):0;
   });
-  mkChart("ch-fc-evol",{type:"line",data:{labels:MESES_ORDEN.map(m=>MESES_LABEL[m]),datasets:[{label:"Costo Global",data:evolGlobal,borderColor:"#00b4d8",backgroundColor:"#00b4d833",borderWidth:2,pointBackgroundColor:"#00b4d8",pointBorderColor:"#0d1b2a",pointRadius:4,pointHoverRadius:6,tension:.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>`${c.dataset.label}: ${c.raw}%`}},datalabels:{anchor:"end",align:"top",color:"#e9ecef",font:{size:10,weight:"bold"},formatter:v=>v!=null?v.toFixed(2)+"%":"0%"}},scales:{x:{grid:{color:"rgba(0,180,216,.06)"},ticks:{color:"#6c8ebf"}},y:{grid:{color:"rgba(0,180,216,.06)"},ticks:{color:"#6c8ebf",callback:v=>v+"%"},suggestedMin:20,suggestedMax:50}}}});
+  mkChart("ch-fc-evol",{type:"bar",data:{labels:MESES_ORDEN.map(m=>MESES_LABEL[m]),datasets:[{label:"Costo Global",data:evolGlobal,backgroundColor:"#00b4d8",borderColor:"#00b4d8",borderWidth:1,borderRadius:6,maxBarThickness:44}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>`${c.dataset.label}: ${c.raw}%`}},datalabels:{anchor:"end",align:"top",color:"#e9ecef",font:{size:10,weight:"bold"},formatter:v=>v!=null?v.toFixed(2)+"%":"0%"}},scales:{x:{grid:{color:"rgba(0,180,216,.06)"},ticks:{color:"#6c8ebf"}},y:{grid:{color:"rgba(0,180,216,.06)"},ticks:{color:"#6c8ebf",callback:v=>v+"%"},suggestedMin:20,suggestedMax:50}}}});
   // Semáforos
   renderFCRows("fc-rows-cocina",coc);
   renderFCRows("fc-rows-bar",bar);
