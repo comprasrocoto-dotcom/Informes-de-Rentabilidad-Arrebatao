@@ -208,7 +208,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div class="g3">
         <div class="card"><div class="card-title">Costo Global por Sede</div><div class="card-sub">Cocina + Bar consolidado</div><div style="height:240px"><canvas id="ch-fc-sede"></canvas></div></div>
         <div class="card"><div class="card-title">Costo por Centro de Costos</div><div class="card-sub">Cocina vs Bar — todas las sedes</div><div style="height:240px"><canvas id="ch-fc-cc"></canvas></div></div>
-        <div class="card"><div class="card-title">Evolución Costo Mes a Mes</div><div class="card-sub">Tendencia por sede</div><div style="height:240px"><canvas id="ch-fc-evol"></canvas></div></div>
+        <div class="card"><div class="card-title">Evolución Costo Mes a Mes</div><div class="card-sub">Evolución mensual consolidada</div><div style="height:240px"><canvas id="ch-fc-evol"></canvas></div></div>
       </div>
       <div class="g2">
         <div class="card"><div class="card-title">Detalle Costo — Cocina</div><div class="card-sub">Costo% por sede y mes</div><div id="fc-rows-cocina"></div></div>
@@ -591,18 +591,16 @@ function renderAll(){
   ];
   barV("ch-fc-cc",fcByCC.map(r=>r.n),fcByCC.map(r=>r.v),[fclr(parseFloat(avgC)||0),fclr(parseFloat(avgB)||0)],true,true);
   // Costo evolución
-  const meses=[...new Set(fcRows.map(r=>r.mes))];
-  const evolDatasets=sedes.map((s,i)=>({
-    label:s,
-    data:meses.map(m=>{
-      const rows=fcRows.filter(r=>r.sede===s&&r.mes===m);
-      const tvs=rows.reduce((a,b)=>a+b.ventas,0);
-      const tms=rows.reduce((a,b)=>a+b.mv,0);
-      return tvs>0?+(tms/tvs*100).toFixed(2):null;
-    }),
-    backgroundColor:P[i]+"cc",borderColor:P[i],borderWidth:1,borderRadius:6,
-  }));
-  mkChart("ch-fc-evol",{type:"bar",data:{labels:meses,datasets:evolDatasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},plugins:{legend:{labels:{color:"#6c8ebf",boxWidth:12}},tooltip:{...TIP,callbacks:{label:c=>`${c.dataset.label}: ${c.raw}%`}},datalabels:{anchor:"end",align:"top",color:"#e9ecef",font:{size:10,weight:"bold"},formatter:v=>v?v.toFixed(2)+"%":""}},scales:{x:{grid:{color:"rgba(0,180,216,.06)"},ticks:{color:"#6c8ebf"}},y:{grid:{color:"rgba(0,180,216,.06)"},ticks:{color:"#6c8ebf",callback:v=>v+"%"},suggestedMin:20,suggestedMax:50}}}});
+  const MESES_ORDEN=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  const MESES_LABEL={ene:"Ene",feb:"Feb",mar:"Mar",abr:"Abr",may:"May",jun:"Jun",jul:"Jul",ago:"Ago",sep:"Sep",oct:"Oct",nov:"Nov",dic:"Dic"};
+  const cocBar=coc.concat(bar);
+  const evolGlobal=MESES_ORDEN.map(m=>{
+    const rows=cocBar.filter(r=>r.mes===m);
+    const tCosto=rows.reduce((a,b)=>a+b.mv,0);
+    const tVentas=rows.reduce((a,b)=>a+b.ventas,0);
+    return tVentas>0?+(tCosto/tVentas*100).toFixed(2):0;
+  });
+  mkChart("ch-fc-evol",{type:"line",data:{labels:MESES_ORDEN.map(m=>MESES_LABEL[m]),datasets:[{label:"Costo Global",data:evolGlobal,borderColor:"#00b4d8",backgroundColor:"#00b4d833",borderWidth:2,pointBackgroundColor:"#00b4d8",pointBorderColor:"#0d1b2a",pointRadius:4,pointHoverRadius:6,tension:.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:28}},plugins:{legend:{display:false},tooltip:{...TIP,callbacks:{label:c=>`${c.dataset.label}: ${c.raw}%`}},datalabels:{anchor:"end",align:"top",color:"#e9ecef",font:{size:10,weight:"bold"},formatter:v=>v!=null?v.toFixed(2)+"%":"0%"}},scales:{x:{grid:{color:"rgba(0,180,216,.06)"},ticks:{color:"#6c8ebf"}},y:{grid:{color:"rgba(0,180,216,.06)"},ticks:{color:"#6c8ebf",callback:v=>v+"%"},suggestedMin:20,suggestedMax:50}}}});
   // Semáforos
   renderFCRows("fc-rows-cocina",coc);
   renderFCRows("fc-rows-bar",bar);
