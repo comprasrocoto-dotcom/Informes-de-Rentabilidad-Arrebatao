@@ -45,7 +45,8 @@ main{padding:20px 24px;max-width:1500px;margin:0 auto}
 .kpi-icon{font-size:1.5rem;margin-bottom:7px}
 .kpi-label{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6c8ebf;margin-bottom:5px}
 .kpi-value{font-size:1.6rem;font-weight:700;color:#e9ecef;line-height:1}
-.kpi-sub{font-size:.68rem;color:#6c8ebf;margin-top:5px}
+.kpi-exact{font-size:.7rem;color:#adb5bd;margin-top:4px;font-weight:600}
+.kpi-sub{font-size:.68rem;color:#6c8ebf;margin-top:2px}
 /* CARD */
 .card{background:#1b2838;border:1px solid rgba(0,180,216,.15);border-radius:13px;padding:18px;transition:border-color .25s,box-shadow .25s}.card:hover{border-color:rgba(0,180,216,.35);box-shadow:0 4px 24px rgba(0,180,216,.06)}
 .card-title{font-size:.92rem;font-weight:700;color:#e9ecef;margin-bottom:3px}
@@ -550,12 +551,12 @@ function renderAll(){
 
   /* ── RESUMEN ── */
   kpiGrid("kpi-resumen",[
-    {icon:"💵",label:"Ventas Totales",value:fmt(tv),sub:"Base neta (excluye CC 'Otros')",bar:"linear-gradient(90deg,#00b4d8,#48cae4)"},
-    {icon:"🚫",label:"Ventas Excluidas",value:fmt(tvExcl),sub:"Centro de Costos 'Otros'",bar:"linear-gradient(90deg,#ef476f,#f78c6b)"},
-    {icon:"📂",label:"Inventario Inicial",value:fmt(MV.reduce((a,b)=>a+b.inv_ini,0)),sub:"Heredado del cierre del mes anterior",bar:"linear-gradient(90deg,#0096c7,#0077b6)"},
-    {icon:"🛒",label:"Compras Totales",value:fmt(tc),sub:"Insumos y materias primas (excluye 'Otros')",bar:"linear-gradient(90deg,#00b4d8,#48cae4)"},
-    {icon:"📋",label:"Inventario Final",value:fmt(MV.reduce((a,b)=>a+b.inv_fin,0)),sub:"Solo Bar y Cocina",bar:"linear-gradient(90deg,#1b9aaa,#48cae4)"},
-    {icon:"📦",label:"Mercancía Vendida",value:fmt(tmv),sub:"Ini. heredado + Compras − Final",bar:"linear-gradient(90deg,#3a86ff,#7209b7)"},
+    {icon:"💵",label:"Ventas Totales",value:fmt(tv),exact:fmtCOP(tv),sub:"Base neta (excluye CC 'Otros')",bar:"linear-gradient(90deg,#00b4d8,#48cae4)"},
+    {icon:"🚫",label:"Ventas Excluidas",value:fmt(tvExcl),exact:fmtCOP(tvExcl),sub:"Centro de Costos 'Otros'",bar:"linear-gradient(90deg,#ef476f,#f78c6b)"},
+    {icon:"📂",label:"Inventario Inicial",value:fmt(MV.reduce((a,b)=>a+b.inv_ini,0)),exact:fmtCOP(MV.reduce((a,b)=>a+b.inv_ini,0)),sub:"Heredado del cierre del mes anterior",bar:"linear-gradient(90deg,#0096c7,#0077b6)"},
+    {icon:"🛒",label:"Compras Totales",value:fmt(tc),exact:fmtCOP(tc),sub:"Insumos y materias primas (excluye 'Otros')",bar:"linear-gradient(90deg,#00b4d8,#48cae4)"},
+    {icon:"📋",label:"Inventario Final",value:fmt(MV.reduce((a,b)=>a+b.inv_fin,0)),exact:fmtCOP(MV.reduce((a,b)=>a+b.inv_fin,0)),sub:"Solo Bar y Cocina",bar:"linear-gradient(90deg,#1b9aaa,#48cae4)"},
+    {icon:"📦",label:"Mercancía Vendida",value:fmt(tmv),exact:fmtCOP(tmv),sub:"Ini. heredado + Compras − Final",bar:"linear-gradient(90deg,#3a86ff,#7209b7)"},
     {icon:"📊",label:"Costo Global",value:`${fcGlobal}%`,sub:fcGlobal<36?"✓ En rango":"⚠ Revisar",bar:"linear-gradient(90deg,#06d6a0,#90e0ef)"},
   ]);
   const bySede=groupBy(V,"sede","base",10);
@@ -780,7 +781,9 @@ function kpiGrid(id,items){
   document.getElementById(id).innerHTML=items.map(k=>`
     <div class="kpi"><div class="kpi-bar" style="background:${k.bar}"></div>
     <div class="kpi-icon">${k.icon}</div><div class="kpi-label">${k.label}</div>
-    <div class="kpi-value">${k.value}</div><div class="kpi-sub">${k.sub}</div></div>`).join("");
+    <div class="kpi-value">${k.value}</div>
+    ${k.exact?`<div class="kpi-exact">${k.exact}</div>`:""}
+    <div class="kpi-sub">${k.sub}</div></div>`).join("");
 }
 
 function hbar(id,data,colors,h=280,uds=false,pct=false){
