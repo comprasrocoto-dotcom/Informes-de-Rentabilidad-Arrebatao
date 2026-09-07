@@ -447,7 +447,7 @@ function parseExcel(wb){
     base:colN(r,["Base"]),
     neto:colN(r,["Neto"]),
     cc:col(r,["CC","Centro"]),
-  })).filter(r=>r.neto>0&&r.base>0);
+  })).filter(r=>r.base!==0);
 
   RAW.compras=toRows("COMPRAS").map(r=>({
     sede:col(r,["Almac","Alm"]).toUpperCase().trim(),
