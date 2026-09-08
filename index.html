@@ -465,7 +465,7 @@ function parseExcel(wb){
 
   RAW.inv=toRows("FORMATO INVENTARIOS").map(r=>({
     sede:col(r,["Almacen"]).toUpperCase().trim(),
-    cc:col(r,["Centro"]),
+    cc:col(r,["CC","Centro"]),
     mes:col(r,["Mes"]).substring(0,3).toLowerCase(),
     art:col(r,["Art"]),
     fam:col(r,["FAMILIA","Familia"]),
@@ -473,10 +473,10 @@ function parseExcel(wb){
     stock_inv:colN(r,["Stock Inventario"]),
     variacion:colN(r,["Variaci"]),
     costo_lin:colN(r,["Coste","Costo Lin"]),
-    costo_ajuste:colN(r,["Costo Ajuste"]),
+    costo_ajuste:colN(r,["Total"]),
     ajuste:colN(r,["Ajuste"]),
     estado:col(r,["Estado"]),
-  })).filter(r=>r.sede&&r.estado);
+  })).filter(r=>r.sede);
   RAW.rent=toRows("RENTABILIDAD").map(r=>({
     fam:col(r,["Familia"]),art:col(r,["Art"]),
     tarifa:col(r,["Tarifa"]),
