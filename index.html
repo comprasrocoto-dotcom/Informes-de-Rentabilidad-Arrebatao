@@ -464,7 +464,7 @@ function parseExcel(wb){
      una vez que RAW.ventas, RAW.compras y RAW.inv estén listos. */
 
   RAW.inv=toRows("FORMATO INVENTARIOS").map(r=>({
-    sede:col(r,["Almacen"]).toUpperCase().trim(),
+    sede:col(r,["Almac"]).toUpperCase().trim(),
     cc:col(r,["CC","Centro"]),
     mes:col(r,["Mes"]).substring(0,3).toLowerCase(),
     art:col(r,["Art"]),
